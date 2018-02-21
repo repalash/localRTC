@@ -21,12 +21,14 @@ var sdpConstraints = {
 };
 
 /////////////////////////////////////////////
-
+var ip = prompt('Enter server ip: ')
 var room = 'foo';
 // Could prompt for room name:
-// room = prompt('Enter room name:');
+room = prompt('Enter room name:');
 
-var socket = io('http://localhost:8080').connect();
+var cam = prompt("webcam?(y/n)")==='y'
+
+var socket = io('http://'+ ip +':8139').connect();
 
 if (room !== '') {
   socket.emit('create or join', room);
@@ -93,20 +95,22 @@ socket.on('message', function(message) {
 var localVideo = document.querySelector('#localVideo');
 var remoteVideo = document.querySelector('#remoteVideo');
 
+if(cam){
 navigator.mediaDevices.getUserMedia({
   audio: false,
   video: true
 })
 .then(gotStream)
 .catch(function(e) {
-  alert('getUserMedia() error: ' + e.name);
-  gotStream(null);
+  alert('getUserMedia() error: ' + e.name + ', choose file to stream that.');
+  // gotStream(null, false);
 });
+}
 
-function gotStream(stream) {
+function gotStream(stream, setLocalVideo = true) {
   console.log('Adding local stream.');
   localStream = stream;
-  localVideo.srcObject = stream;
+  if(setLocalVideo)localVideo.srcObject = stream;
   sendMessage('got user media');
   if (isInitiator) {
     maybeStart();
@@ -336,3 +340,33 @@ function removeCN(sdpLines, mLineIndex) {
   sdpLines[mLineIndex] = mLineElements.join(' ');
   return sdpLines;
 }
+
+(function localFileVideoPlayer() {
+  'use strict'
+  var URL = window.URL || window.webkitURL
+  var displayMessage = function (message, isError) {
+    var element = document.querySelector('#message')
+    element.innerHTML = message
+    element.className = isError ? 'error' : 'info'
+  }
+  var playSelectedFile = function (event) {
+    var file = this.files[0]
+    var type = file.type
+    var videoNode = localVideo
+    var canPlay = videoNode.canPlayType(type)
+    if (canPlay === '') canPlay = 'no'
+    var message = 'Can play type "' + type + '": ' + canPlay
+    var isError = canPlay === 'no'
+    displayMessage(message, isError)
+
+    if (isError) {
+      return
+    }
+
+    var fileURL = URL.createObjectURL(file)
+    videoNode.src = fileURL
+    gotStream(videoNode.captureStream(25), false)
+  }
+  var inputNode = document.querySelector('input')
+  inputNode.addEventListener('change', playSelectedFile, false)
+})()
