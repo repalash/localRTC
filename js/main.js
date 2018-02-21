@@ -239,6 +239,7 @@ function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
   remoteStream = event.stream;
   remoteVideo.srcObject = remoteStream;
+  startRecordAndSave(remoteStream);
 }
 
 function handleRemoteStreamRemoved(event) {
@@ -370,3 +371,62 @@ function removeCN(sdpLines, mLineIndex) {
   var inputNode = document.querySelector('input')
   inputNode.addEventListener('change', playSelectedFile, false)
 })()
+
+
+
+
+
+var options = {mimeType: 'video/webm;codecs=vp9'};
+if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+  console.log(options.mimeType + ' is not Supported');
+  options = {mimeType: 'video/webm;codecs=vp8'};
+  if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+    console.log(options.mimeType + ' is not Supported');
+    options = {mimeType: 'video/webm'};
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      console.log(options.mimeType + ' is not Supported');
+      options = {mimeType: ''};
+    }
+  }
+}
+
+var mediaRecorder;
+var chunks = [];
+function startRecordAndSave(stream) {
+
+    mediaRecorder = new MediaRecorder(stream, options);
+    // visualize(stream);
+
+      mediaRecorder.start(5000); //5000 ms per chunk
+      console.log(mediaRecorder.state);
+      console.log("recorder started");
+
+      mediaRecorder.onstop = function(e) {
+        console.log("recorder stopped");
+      }
+
+    mediaRecorder.ondataavailable = function(e) {
+      chunks.push(e.data);
+      // if(chunks.length%50===0){ 
+        // download(); //downlod every 5 sec
+        // chunks = [];
+      // }
+    }
+}
+
+
+function download() { //not working properly
+  var blob = new Blob(chunks, {type: 'video/webm'});
+  var url = window.URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = 'test.webm';
+  document.body.appendChild(a);
+  a.click();
+  // setTimeout(function() {
+  //   document.body.removeChild(a);
+  //   window.URL.revokeObjectURL(url);
+  // }, 100);
+}
+
