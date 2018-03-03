@@ -23,7 +23,6 @@ var sdpConstraints = {
 /////////////////////////////////////////////
 var ip = prompt('Enter server ip: ')
 var room = 'foo';
-// Could prompt for room name:
 room = prompt('Enter room name:');
 
 var cam = prompt("webcam?(y/n)")==='y'

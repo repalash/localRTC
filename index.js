@@ -10,6 +10,8 @@ var app = http.createServer(function(req, res) {
   fileServer.serve(req, res);
 }).listen(8139);
 
+console.log(`Running on http://${HOST}:${PORT}`);
+
 var io = socketIO.listen(app);
 io.sockets.on('connection', function(socket) {
 
