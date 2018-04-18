@@ -5,7 +5,7 @@ var nodeStatic = require('node-static');
 var http = require('http');
 var socketIO = require('socket.io');
 
-const PORT = 8080;
+const PORT = 8139;
 const HOST = '0.0.0.0';
 
 var fileServer = new(nodeStatic.Server)();
